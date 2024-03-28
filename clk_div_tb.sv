@@ -1,0 +1,55 @@
+`timescale 1ns/1ps
+
+module tb_clk_div;
+
+    // Parameters for the testbench
+    localparam CLK_PERIOD = 10; // Clock period in ns for 100MHz
+    integer CLK_DIVIDE = 100;
+
+    // Testbench Signals
+    logic clk;
+    logic rst;
+    logic spi_clk;
+
+    // Instantiate the Device Under Test (DUT)
+
+    clk_div DUT (
+    	.rst(rst),
+    	.clk(clk),
+	.CLK_DIVIDE(CLK_DIVIDE),
+    	.spi_clk(spi_clk)
+    );
+
+    // Clock generation
+    initial begin
+        clk = 0;
+        forever #(CLK_PERIOD/2) clk = ~clk; // Toggle clock every half period
+    end
+
+    // Reset logic
+    initial begin
+        rst = 0; // Reset is active low
+        // Keep reset low for 5 clock cycles
+        repeat(5) @(posedge clk);
+        rst = 1; // Release reset
+    end
+
+    // Test Sequence
+    initial begin
+        // Initialize
+        @(negedge rst); // Wait for reset to go low
+        @(posedge rst); // Wait for reset to release
+
+        // Observe the output for some time
+        repeat(1000) @(posedge clk);
+
+        // Finish the simulation
+        $finish;
+    end
+
+    // Optional: Monitor Outputs
+    initial begin
+        $monitor("Time: %0t | rst: %b | clk: %b | spi_clk: %b", $time, rst, clk, spi_clk);
+    end
+
+endmodule
