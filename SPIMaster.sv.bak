@@ -37,22 +37,52 @@ module SPIMaster #(
     parameter integer               CLK_DIVIDE  = 100, // Clock divider to indicate frequency of SCLK
     parameter integer               SPI_MAXLEN  = 32   // Maximum SPI transfer length
 ) (
-    input                           clk,
-    input                           sresetn,        // active low reset, synchronous to clk
+    input logic                          clk,
+    input  logic                         sresetn,        // active low reset, synchronous to clk
     
     // Command interface 
-    input                           start_cmd,     // Start SPI transfer
-    output                          spi_drv_rdy,   // Ready to begin a transfer
-    input  [$clog2(SPI_MAXLEN):0]   n_clks,        // Number of bits (SCLK pulses) for the SPI transaction
-    input  [SPI_MAXLEN-1:0]         tx_data,       // Data to be transmitted out on MOSI
-    output [SPI_MAXLEN-1:0]         rx_miso,       // Data read in from MISO
+    input   logic                        start_cmd,     // Start SPI transfer
+    output  logic                        spi_drv_rdy,   // Ready to begin a transfer
+    input  logic [$clog2(SPI_MAXLEN):0]   n_clks,        // Number of bits (SCLK pulses) for the SPI transaction
+    input logic [SPI_MAXLEN-1:0]         tx_data,       // Data to be transmitted out on MOSI
+    output logic [SPI_MAXLEN-1:0]         rx_miso,       // Data read in from MISO
     
     // SPI pins
-    output                          SCLK,          // SPI clock sent to the slave
-    output                          MOSI,          // Master out slave in pin (data output to the slave)
-    input                           MISO,          // Master in slave out pin (data input from the slave)
-    output                          SS_N           // Slave select, will be 0 during a SPI transaction
+    output logic                         SCLK,          // SPI clock sent to the slave
+    output logic                         MOSI,          // Master out slave in pin (data output to the slave)
+    input logic                          MISO,          // Master in slave out pin (data input from the slave)
+    output logic                        SS_N           // Slave select, will be 0 during a SPI transaction
 );
+
+
+clk_div clk_div(
+    .clk(clk),
+    .rst(sresetn),
+    .CLK_DIVIDE(CLK_DIVIDE), // Assume 32-bit wide for generality
+    .spi_clk(SCLK)
+);
+
+
+spi_drv #(
+    .CLK_DIVIDE(CLK_DIVIDE), // Clock divider to indicate frequency of SCLK
+    .SPI_MAXLEN(SPI_MAXLEN)   // Maximum SPI transfer length
+) (
+    .sresetn(sresetn),                   // Active low reset, synchronous to clk
+    
+    // Command interface 
+    .start_cmd(start_cmd),                 // Start SPI transfer
+    .spi_drv_rdy(spi_drv_rdy),              // Ready to begin a transfer
+    .n_clks(n_clks),  // Number of bits (SCLK pulses) for the SPI transaction
+    .tx_data(tx_data),       // Data to be transmitted out on MOSI
+    .rx_miso(rx_miso),      // Data read in from MISO
+    
+    // SPI pins
+    .SCLK(SCLK),                    // SPI clock sent to the slave
+    .MOSI(MOSI),                    // Master out slave in pin (data output to the slave)
+    .MISO(MISO),                     // Master in slave out pin (data input from the slave)
+    .SS_N(SS_N)                     // Slave select, will be 0 during a SPI transaction
+);
+
 
 
 endmodule

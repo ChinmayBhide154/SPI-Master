@@ -16,7 +16,7 @@ module tb_clk_div;
     clk_div DUT (
     	.rst(rst),
     	.clk(clk),
-	.CLK_DIVIDE(CLK_DIVIDE)
+	.CLK_DIVIDE(CLK_DIVIDE),
     	.spi_clk(spi_clk)
     );
 

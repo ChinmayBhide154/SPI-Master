@@ -62,25 +62,26 @@ clk_div clk_div(
     .spi_clk(SCLK)
 );
 
+
 spi_drv #(
-    .SPI_MAXLEN(SPI_MAXLEN)
+    .CLK_DIVIDE(CLK_DIVIDE), // Clock divider to indicate frequency of SCLK
+    .SPI_MAXLEN(SPI_MAXLEN)   // Maximum SPI transfer length
 ) spi_drv (
-    .clk(clk),
-    .sresetn(sresetn),
-    .start_cmd(start_cmd),
-    .spi_clk(spi_clk), // Driven by clk_div module
-    .tx_data(tx_data),
-    .n_clks(n_clks),
-    .MISO(MISO),
-    .MOSI(MOSI),
-    .SS_N(SS_N),
-    .spi_drv_rdy(spi_drv_rdy),
-    .rx_miso(rx_miso)
+    .sresetn(sresetn),                   // Active low reset, synchronous to clk
+    
+    // Command interface 
+    .start_cmd(start_cmd),                 // Start SPI transfer
+    .spi_drv_rdy(spi_drv_rdy),              // Ready to begin a transfer
+    .n_clks(n_clks),  // Number of bits (SCLK pulses) for the SPI transaction
+    .tx_data(tx_data),       // Data to be transmitted out on MOSI
+    .rx_miso(rx_miso),      // Data read in from MISO
+    
+    // SPI pins
+    .SCLK(SCLK),                    // SPI clock sent to the slave
+    .MOSI(MOSI),                    // Master out slave in pin (data output to the slave)
+    .MISO(MISO),                     // Master in slave out pin (data input from the slave)
+    .SS_N(SS_N)                     // Slave select, will be 0 during a SPI transaction
 );
-
-
-
-
 
 
 

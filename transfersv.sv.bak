@@ -1,0 +1,72 @@
+// Define states for the transfer FSM
+typedef enum int {TRANSFER_IDLE, TRANSFER_ACTIVE, TRANSFER_DONE} transfer_state_t;
+
+module transfer_fsm (
+    input wire clk,
+    input wire sresetn,
+    input wire transfer_start,
+    output reg transfer_done,
+    // SPI signals
+    input wire SCLK,
+    input wire MISO,
+    output reg MOSI,
+    output reg SS_N,
+    // Data to be transferred
+    input wire [SPI_MAXLEN-1:0] tx_data,
+    output reg [SPI_MAXLEN-1:0] rx_miso,
+    input wire [$clog2(SPI_MAXLEN):0] n_clks
+);
+
+    // Internal signals
+    transfer_state_t current_state = TRANSFER_IDLE;
+    reg [SPI_MAXLEN-1:0] shift_reg;
+    reg [$clog2(SPI_MAXLEN):0] bit_count;
+
+    // FSM logic for transfers
+    always @(posedge clk or negedge sresetn) begin
+        if (!sresetn) begin
+            // Asynchronous reset logic
+            current_state <= TRANSFER_IDLE;
+            transfer_done <= 1'b0;
+            SS_N <= 1'b1; // Ensure SS_N is deasserted
+            bit_count <= 0;
+            rx_miso <= 0;
+        end else begin
+            case (current_state)
+                TRANSFER_IDLE: begin
+                    if (transfer_start) begin
+                        // Start the transfer
+                        current_state <= TRANSFER_ACTIVE;
+                        transfer_done <= 1'b0;
+                        SS_N <= 1'b0; // Assert SS_N to start SPI communication
+                        bit_count <= n_clks; // Initialize bit counter
+                        shift_reg <= tx_data; // Load data to be transferred
+                        rx_miso <= 0; // Clear the MISO receive buffer
+                    end
+                end
+                TRANSFER_ACTIVE: begin
+                    if (bit_count > 0) begin
+                        // Handle the data transfer on SPI clock edges
+                        // ...
+                        // Decrement bit_count, shift MOSI and rx_miso appropriately
+                    end else begin
+                        // Transfer complete
+                        current_state <= TRANSFER_DONE;
+                    end
+                end
+                TRANSFER_DONE: begin
+                    // End the transfer
+                    SS_N <= 1'b1; // Deassert SS_N
+                    transfer_done <= 1'b1; // Indicate that transfer is complete
+                    // Optionally return to IDLE or wait for a reset signal
+                    current_state <= TRANSFER_IDLE;
+                end
+                default: current_state <= TRANSFER_IDLE;
+            endcase
+        end
+    end
+
+    // Additional logic to drive MOSI and read MISO, possibly using a separate always block
+    // triggered on the SCLK edge, depending on how your system is designed
+
+endmodule
