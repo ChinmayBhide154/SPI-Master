@@ -42,7 +42,8 @@ module spi_drv #(
 
     // Slave Side
     always_ff@(negedge SCLK) begin
-        MISO <= rx_miso[counter - 1];
+        //MISO <= rx_miso[counter - 1];
+        MISO <= MOSI;
         rx_miso[counter] <= MISO;
     end
 
