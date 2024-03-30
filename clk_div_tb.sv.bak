@@ -10,14 +10,18 @@ module tb_clk_div;
     logic clk;
     logic rst;
     logic spi_clk;
+    logic start;
+    logic n_pulses;
 
     // Instantiate the Device Under Test (DUT)
 
     clk_div DUT (
     	.rst(rst),
     	.clk(clk),
-	.CLK_DIVIDE(CLK_DIVIDE),
-    	.spi_clk(spi_clk)
+	    .CLK_DIVIDE(CLK_DIVIDE),
+    	.spi_clk(spi_clk),
+        .start(start),
+        .n_pulses(n_pulses)
     );
 
     // Clock generation
@@ -31,6 +35,8 @@ module tb_clk_div;
         rst = 0; // Reset is active low
         // Keep reset low for 5 clock cycles
         repeat(5) @(posedge clk);
+        start = 1'b1;
+        n_pulses = 3'b111;
         rst = 1; // Release reset
     end
 

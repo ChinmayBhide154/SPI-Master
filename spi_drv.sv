@@ -17,11 +17,12 @@ module spi_drv #(
     output logic MISO,
     output logic SS_N                     // Slave select, will be 0 during a SPI transaction
 );
-    logic [$clog2(SPI_MAXLEN):0] counter;
+logic [$clog2(SPI_MAXLEN):0] counter;
 
-
+    // Master Side
+    /*
     always_ff@(posedge SCLK) begin
-        if(!sresetn | counter == 0) begin
+        if(!sresetn) begin
             counter <= n_clks;
             spi_drv_rdy <= 1'b1;
             SS_N <= 1'b1;
@@ -29,6 +30,14 @@ module spi_drv #(
 
         else begin
             if(start_cmd) begin
+                if (counter == n_clks + 1) begin
+                    SS_N <= 1'b0;
+                    spi_drv_rdy <= 1'b0;
+                end
+                if(counter == 0) begin
+                    counter <= n_clks + 1;
+                end
+                SS_N <= 0;
                 counter <= counter - 1;
                 spi_drv_rdy <= 1'b1;
                 MOSI <= tx_data[counter - 1];
@@ -42,10 +51,78 @@ module spi_drv #(
 
     // Slave Side
     always_ff@(negedge SCLK) begin
-        //MISO <= rx_miso[counter - 1];
         MISO <= MOSI;
-        rx_miso[counter] <= MISO;
+        rx_miso[counter + 1] <= MISO;
     end
+    */
+
+always_ff@(posedge SCLK) begin
+        if(!sresetn) begin
+            counter <= n_clks;
+            spi_drv_rdy <= 1'b1;
+            SS_N <= 1'b1;
+        end
+
+        else begin
+            if(start_cmd && spi_drv_rdy) begin
+                SS_N <= 1'b0; // Assert SS_N to start SPI communication
+                spi_drv_rdy <= 1'b0; // Not ready for new command until current is finished
+                counter <= n_clks; // Load the counter with the number of clocks/bits to send
+            end
+            else if(counter > 0) begin
+                MOSI <= tx_data[counter-1]; // Transmit the next bit on MOSI
+                counter <= counter - 1; // Decrement the counter
+            end
+
+            else if(counter == 0) begin
+                spi_drv_rdy <= 1'b1; // Transfer complete, indicate readiness for new command
+                SS_N <= 1'b1; // Deassert SS_N to end SPI communication
+            end
+        end
+    end
+    
+
+    // Slave Side
+    always_ff@(negedge SCLK) begin
+        MISO <= MOSI;
+        rx_miso[counter + 1] <= MISO;
+    end
+
+
+
+
+
+    /*
+always_ff@(posedge SCLK or negedge sresetn) begin
+    if(!sresetn) begin
+        counter <= 0;
+        spi_drv_rdy <= 1'b0;
+        MOSI <= 1'b0;
+        SS_N <= 1'b1; // SS_N should be high (inactive) on reset
+    end else if(start_cmd && spi_drv_rdy) begin
+        // Prepare for SPI transfer
+        SS_N <= 1'b0; // Assert SS_N to start SPI communication
+        spi_drv_rdy <= 1'b0; // Not ready for new command until current is finished
+        counter <= n_clks; // Load the counter with the number of clocks/bits to send
+    end else if(counter > 0) begin
+        MOSI <= tx_data[counter-1]; // Transmit the next bit on MOSI
+        counter <= counter - 1; // Decrement the counter
+    end else if(counter == 0) begin
+        spi_drv_rdy <= 1'b1; // Transfer complete, indicate readiness for new command
+        SS_N <= 1'b1; // Deassert SS_N to end SPI communication
+    end
+end
+
+// Since you are told to latch MISO directly with MOSI, let's do this on the negedge of SCLK
+// This means the slave device is assumed to sample MOSI on posedge and the master samples MISO on negedge
+always_ff@(negedge SCLK or negedge sresetn) begin
+    if(!sresetn) begin
+        rx_miso <= 0; // Clear rx_miso on reset
+    end else if(SS_N == 1'b0) begin // Only latch when SS_N is asserted (active low)
+        rx_miso <= (rx_miso << 1) | MISO; // Shift in the bit from MISO
+    end
+end
+*/
 
 endmodule
 

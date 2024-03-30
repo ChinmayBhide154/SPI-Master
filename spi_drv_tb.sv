@@ -46,23 +46,20 @@ module tb_spi_drv;
         SCLK = 0;
         sresetn = 0;
         start_cmd = 0;
-        n_clks = 10;
-        tx_data = 8'b11010001;
+        n_clks = 16;
+        tx_data = 16'b11010001_11010001;
         MISO = 0; // Assume MISO is driven low when not in use
 
         // Reset sequence
         #40; // Wait for a few cycles
         sresetn = 1; // Release reset
-        #40; // Wait for stabilization
-
-        // SPI transaction setup
-        for (int i = 0; i < 1000; i++) begin
-            //n_clks = $urandom_range(1, SPI_MAXLEN);
+        #1000; // Wait for stabilization
+        for (int i = 0; i < 8; i++) begin
             start_cmd = 1;
-            #100; // Wait for transaction to complete, adjust as needed
+            #1800;
+            start_cmd = 0;
+            #1800;
         end
-
-
     end
 
     // Task to start SPI transaction

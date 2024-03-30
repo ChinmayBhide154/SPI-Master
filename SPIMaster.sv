@@ -54,14 +54,14 @@ module SPIMaster #(
     output logic                        SS_N           // Slave select, will be 0 during a SPI transaction
 );
 
-
+/*
 clk_div clk_div(
     .clk(clk),
     .rst(sresetn),
     .CLK_DIVIDE(CLK_DIVIDE), // Assume 32-bit wide for generality
     .spi_clk(SCLK)
 );
-
+*/
 
 spi_drv #(
     .CLK_DIVIDE(CLK_DIVIDE), // Clock divider to indicate frequency of SCLK
