@@ -58,12 +58,13 @@ module SPIMaster_tb;
         // Prepare data for transmission
         tx_data = 32'hA5A5_A5A5; // Sample data
         n_clks = 16; // Send 32 bits
-        start_cmd = 1;
+
+        // Start SPI transfer
+        @(posedge clk) start_cmd = 1;
+        @(posedge clk) start_cmd = 0;
 
         // Wait for transaction to complete
         wait (spi_drv_rdy);
-
-        #100000;
 
         // Check results
         if (rx_miso == tx_data) begin
@@ -73,7 +74,7 @@ module SPIMaster_tb;
         end
 
         // End simulation
-        //$finish;
+        $finish;
     end
 
     // Simple SPI slave model for loopback (echoes MOSI to MISO)

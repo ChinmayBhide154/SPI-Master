@@ -50,18 +50,25 @@ module SPIMaster #(
     // SPI pins
     output logic                         SCLK,          // SPI clock sent to the slave
     output logic                         MOSI,          // Master out slave in pin (data output to the slave)
-    input logic                          MISO,          // Master in slave out pin (data input from the slave)
+    output logic                          MISO,          // Master in slave out pin (data input from the slave)
     output logic                        SS_N           // Slave select, will be 0 during a SPI transaction
 );
 
-/*
+
+assign start = start_cmd & spi_drv_rdy;
+
+logic transaction_done;
+
 clk_div clk_div(
     .clk(clk),
     .rst(sresetn),
+    .n_pulses(n_clks),
+    .start(start_cmd),
     .CLK_DIVIDE(CLK_DIVIDE), // Assume 32-bit wide for generality
-    .spi_clk(SCLK)
+    .spi_clk(SCLK),
+    .done(transaction_done)
 );
-*/
+
 
 spi_drv #(
     .CLK_DIVIDE(CLK_DIVIDE), // Clock divider to indicate frequency of SCLK
