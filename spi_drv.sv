@@ -17,7 +17,7 @@ module spi_drv #(
     output logic MISO,
     output logic SS_N                     // Slave select, will be 0 during a SPI transaction
 );
-logic [$clog2(SPI_MAXLEN):0] counter;
+logic [($clog2(SPI_MAXLEN) + 1):0] counter;
 
     // Master Side
     /*
@@ -58,27 +58,33 @@ logic [$clog2(SPI_MAXLEN):0] counter;
 
 always_ff@(posedge SCLK or negedge sresetn) begin
         if(!sresetn) begin
-            counter <= n_clks;
-            spi_drv_rdy <= 1'b0;
+            //counter <= n_clks + 2;
+            counter <= 0;
+            //spi_drv_rdy <= 1'b0;
+            spi_drv_rdy <= 1'b1;
             SS_N <= 1'b1;
         end
 
         else begin
-            if(start_cmd) begin
+            if(start_cmd && spi_drv_rdy) begin
+            //if(start_cmd) begin
                 SS_N <= 1'b0; // Assert SS_N to start SPI communication
-                spi_drv_rdy <= 1'b1;
-                counter <= n_clks; // Load the counter with the number of clocks/bits to send
+                //spi_drv_rdy <= 1'b1;
+                spi_drv_rdy <= 1'b0;
+                counter <= n_clks;
+                MOSI <= tx_data[n_clks - 1];
+            end
+            if(counter > 0) begin
+                MOSI <= tx_data[counter - 1]; // Transmit the next bit on MOSI
+                //spi_drv_rdy <= 1'b1;
+                counter <= counter - 1; // Decrement the counter
+            end
 
-                if(counter > 0) begin
-                    MOSI <= tx_data[counter-1]; // Transmit the next bit on MOSI
-                    spi_drv_rdy <= 1'b1;
-                    counter <= counter - 1; // Decrement the counter
-                end
-
-                if(counter == 0) begin
-                    spi_drv_rdy <= 1'b0; // Transfer complete, indicate readiness for new command
-                    SS_N <= 1'b1; // Deassert SS_N to end SPI communication
-                end
+            else if(counter == 0 & SS_N == 1'b0) begin
+                MOSI <= tx_data[0];
+                //spi_drv_rdy <= 1'b1; // Transfer complete, indicate readiness for new command
+                //SS_N <= 1'b1; // Deassert SS_N to end SPI communication
+            end
             //else if(counter > 0) begin
              //   MOSI <= tx_data[counter-1]; // Transmit the next bit on MOSI
              //   spi_drv_rdy <= 1'b1;
@@ -89,20 +95,22 @@ always_ff@(posedge SCLK or negedge sresetn) begin
              //   spi_drv_rdy <= 1'b0; // Transfer complete, indicate readiness for new command
              //   SS_N <= 1'b1; // Deassert SS_N to end SPI communication
             //end
-            end
-            else begin
-                counter <= n_clks;
-                spi_drv_rdy <= 1'b0;
-                SS_N <= 1'b1;
-            end
+            //end
+            //else begin
+            //    counter <= n_clks + 2;
+            //    spi_drv_rdy <= 1'b0;
+            //    SS_N <= 1'b1;
+            //end
         end
     end
     
 
     // Slave Side
     always_ff@(negedge SCLK) begin
-        MISO <= MOSI;
-        rx_miso[counter + 1] <= MISO;
+        if (!SS_N) begin
+            MISO <= MOSI;
+            rx_miso[counter - 1] <= MOSI;
+        end
     end
 
 
