@@ -55,7 +55,7 @@ module SPIMaster #(
 );
 
 
-assign start = start_cmd & spi_drv_rdy;
+//assign start = start_cmd & spi_drv_rdy;
 
 logic transaction_done;
 
@@ -65,8 +65,8 @@ clk_div clk_div(
     .n_pulses(n_clks),
     .start(start_cmd),
     .CLK_DIVIDE(CLK_DIVIDE), // Assume 32-bit wide for generality
-    .spi_clk(SCLK),
-    .done(transaction_done)
+    .spi_clk(SCLK)
+    //.done(SS_N)
 );
 
 
