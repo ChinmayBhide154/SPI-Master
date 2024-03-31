@@ -75,12 +75,12 @@ always_ff@(posedge SCLK or negedge sresetn) begin
                 MOSI <= tx_data[n_clks - 1];
             end
             if(counter > 0) begin
-                MOSI <= tx_data[counter - 1]; // Transmit the next bit on MOSI
+                MOSI <= tx_data[counter - 2]; // Transmit the next bit on MOSI
                 //spi_drv_rdy <= 1'b1;
                 counter <= counter - 1; // Decrement the counter
             end
 
-            else if(counter == 0 & SS_N == 1'b0) begin
+            else if(counter == 1 & SS_N == 1'b0) begin
                 MOSI <= tx_data[0];
                 //spi_drv_rdy <= 1'b1; // Transfer complete, indicate readiness for new command
                 //SS_N <= 1'b1; // Deassert SS_N to end SPI communication
