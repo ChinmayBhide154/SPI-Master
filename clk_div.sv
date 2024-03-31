@@ -3,10 +3,9 @@ module clk_div #(
 ) (
     input wire clk,
     input wire rst,
-    input integer CLK_DIVIDE, // Assume 32-bit wide for generality
+    input integer CLK_DIVIDE, 
     input logic [$clog2(SPI_MAXLEN):0] n_pulses,
     input logic start,
-    //output logic done,
     output reg spi_clk
 );
 
@@ -17,28 +16,18 @@ always @(posedge clk or negedge rst) begin
         counter <= 0;
         spi_clk <= 0;
         n_pulses_counter <= n_pulses;
-        //done <= 1'b0;
     end 
     
     else begin
         if(start & n_pulses_counter != 1'b0) begin
-            //if (counter == (CLK_DIVIDE >> 1) - 1) begin
             spi_clk <= ~spi_clk;
-                //counter <= 0;
-            //end 
-            
-            //else begin
-                counter <= counter + 1;
-            //end
-
+            counter <= counter + 1;
             n_pulses_counter = n_pulses_counter - 1;
-            //done <= 1'b0;
         end
 
         else begin
             spi_clk <= 1'b0;
             n_pulses_counter <= n_pulses;
-            //done = 1'b1;
             counter <= 0;
         end
     end
