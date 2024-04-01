@@ -20,8 +20,9 @@ always @(posedge clk or negedge rst) begin
 
     
     else begin
-        if(counter > 1 && (counter != (SPI_MAXLEN * CLK_DIVIDE) >> 1) && start) begin
+        if(counter > 1 && (counter <= ((SPI_MAXLEN * CLK_DIVIDE) >> 1) + 2) && start) begin
             spi_clk = ~spi_clk;
+            counter <= counter + 1;
         end
         else if (counter == 0 || counter == 1) begin
             counter <= counter + 1;
