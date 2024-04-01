@@ -18,7 +18,6 @@ always @(posedge clk or negedge rst) begin
         spi_clk <= 0;
     end
 
-    
     else begin
         if(counter > 1 && (counter <= ((SPI_MAXLEN * CLK_DIVIDE) >> 1) + 2) && start) begin
             spi_clk = ~spi_clk;
@@ -27,11 +26,7 @@ always @(posedge clk or negedge rst) begin
         else if (counter == 0 || counter == 1) begin
             counter <= counter + 1;
         end
-        //if(start != 1'b0 && (counter != (SPI_MAXLEN * CLK_DIVIDE) >> 1)) begin
-            //spi_clk <= ~spi_clk;
-          //  counter <= counter + 1;
-        //end 
-
+        
         else spi_clk <= 1'b0;
     end
 end

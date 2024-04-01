@@ -2,11 +2,10 @@
 
 module SPIMaster_tb;
 
-    parameter CLK_PERIOD = 10; // Clock period in ns for a 100MHz clock
-    parameter CLK_DIVIDE = 4; // Fast clock divider for test purposes
-    parameter SPI_MAXLEN = 16; // SPI transfer length
+    parameter CLK_PERIOD = 10;
+    parameter CLK_DIVIDE = 4; 
+    parameter SPI_MAXLEN = 16;
 
-    // Testbench signals
     logic clk;
     logic sresetn;
     logic start_cmd;
@@ -20,7 +19,6 @@ module SPIMaster_tb;
     logic SS_N;
     logic [1:0] cnt;
 
-    // Device Under Test
     SPIMaster #(
         .CLK_DIVIDE(CLK_DIVIDE),
         .SPI_MAXLEN(SPI_MAXLEN)
@@ -38,53 +36,45 @@ module SPIMaster_tb;
         .SS_N(SS_N)
     );
 
-    // Clock generation
     initial begin
         clk = 0;
         forever #(CLK_PERIOD/2) clk = ~clk;
     end
 
-    // Test sequence
+
     initial begin
         cnt = 0;
         repeat(3) begin
-        // Initialize signals
-        sresetn = 0;
-        start_cmd = 0;
-        n_clks = SPI_MAXLEN;
-        tx_data = {SPI_MAXLEN{1'b0}};
+            sresetn = 0;
+            start_cmd = 0;
+            n_clks = SPI_MAXLEN;
+            tx_data = {SPI_MAXLEN{1'b0}};
 
-        // Reset the device
-        #(CLK_PERIOD*2) sresetn = 1;
-        #(CLK_PERIOD*10);
+            #(CLK_PERIOD*2) sresetn = 1;
+            #(CLK_PERIOD*10);
 
-        // Prepare data for transmission
-        if(cnt == 0) tx_data = 32'hA5A5_A5A5; // Sample data
-        else if (cnt == 1) tx_data = 32'hA675_3B46;
-        else tx_data = 32'hA5A5_A5A5;
-        n_clks = 16; // Send 32 bits
-        start_cmd = 1;
+            if(cnt == 0) tx_data = 32'hA5A5_A5A5; 
+            else if (cnt == 1) tx_data = 32'hA675_3B46;
+            else tx_data = 32'hA5A5_A5A5;
+            n_clks = 16; 
+            start_cmd = 1;
 
-        // Wait for transaction to complete
-        wait (spi_drv_rdy);
+            wait (spi_drv_rdy);
 
-        #1000;
+            #1000;
 
-        // Check results
-        if (rx_miso == tx_data) begin
-            $display("Test Passed, Received Data matches Transmitted Data");
-        end else begin
-            $display("Test Failed, Received Data: %0h does not match Transmitted Data: %0h", rx_miso, tx_data);
+            if (rx_miso == tx_data) begin
+                $display("Test Passed, Received Data matches Transmitted Data");
+            end else begin
+                $display("Test Failed, Received Data: %0h does not match Transmitted Data: %0h", rx_miso, tx_data);
+            end
+            cnt = cnt + 1;
         end
-        cnt = cnt + 1;
-        end
-        //cnt = cnt + 1;
-        // End simulation
-        //$finish;
+
     end
 
     always_ff @(posedge SCLK) begin
-        if (SS_N == 1'b0) begin // Only echo data when SS_N is active
+        if (SS_N == 1'b0) begin 
             MISO <= MOSI;
         end
     end
