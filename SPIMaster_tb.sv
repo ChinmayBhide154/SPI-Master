@@ -18,6 +18,7 @@ module SPIMaster_tb;
     logic MOSI;
     logic MISO;
     logic SS_N;
+    logic [1:0] cnt;
 
     // Device Under Test
     SPIMaster #(
@@ -45,6 +46,8 @@ module SPIMaster_tb;
 
     // Test sequence
     initial begin
+        cnt = 0;
+        repeat(3) begin
         // Initialize signals
         sresetn = 0;
         start_cmd = 0;
@@ -56,14 +59,16 @@ module SPIMaster_tb;
         #(CLK_PERIOD*10);
 
         // Prepare data for transmission
-        tx_data = 32'hA5A5_A5A5; // Sample data
+        if(cnt == 0) tx_data = 32'hA5A5_A5A5; // Sample data
+        else if (cnt == 1) tx_data = 32'hA675_3B46;
+        else tx_data = 32'hA5A5_A5A5;
         n_clks = 16; // Send 32 bits
         start_cmd = 1;
 
         // Wait for transaction to complete
         wait (spi_drv_rdy);
 
-        #100000;
+        #1000;
 
         // Check results
         if (rx_miso == tx_data) begin
@@ -71,12 +76,13 @@ module SPIMaster_tb;
         end else begin
             $display("Test Failed, Received Data: %0h does not match Transmitted Data: %0h", rx_miso, tx_data);
         end
-
+        cnt = cnt + 1;
+        end
+        //cnt = cnt + 1;
         // End simulation
         //$finish;
     end
 
-    // Simple SPI slave model for loopback (echoes MOSI to MISO)
     always_ff @(posedge SCLK) begin
         if (SS_N == 1'b0) begin // Only echo data when SS_N is active
             MISO <= MOSI;

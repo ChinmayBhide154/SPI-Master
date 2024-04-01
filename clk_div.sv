@@ -16,24 +16,23 @@ always @(posedge clk or negedge rst) begin
     if (!rst) begin
         counter <= 0;
         spi_clk <= 0;
-        //n_pulses_counter <= n_pulses;
-    end 
+    end
+
     
     else begin
-        //if((start != 1'b0) & (n_pulses_counter != 1'b0)) begin
-        if(start != 1'b0 && counter != (SPI_MAXLEN * CLK_DIVIDE) >> 1) begin
-            spi_clk <= ~spi_clk;
+        if(counter > 1 && (counter != (SPI_MAXLEN * CLK_DIVIDE) >> 1) && start) begin
+            spi_clk = ~spi_clk;
+        end
+        else if (counter == 0 || counter == 1) begin
             counter <= counter + 1;
-            //n_pulses_counter = n_pulses_counter - 1;
         end
-        
-        else begin
-            spi_clk <= 1'b0;
-            //n_pulses_counter <= n_pulses;
-            //counter <= 0;
-        end
+        //if(start != 1'b0 && (counter != (SPI_MAXLEN * CLK_DIVIDE) >> 1)) begin
+            //spi_clk <= ~spi_clk;
+          //  counter <= counter + 1;
+        //end 
+
+        else spi_clk <= 1'b0;
     end
 end
-
 
 endmodule

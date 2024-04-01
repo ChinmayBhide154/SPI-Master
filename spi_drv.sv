@@ -17,7 +17,7 @@ module spi_drv #(
 
     logic [($clog2(SPI_MAXLEN) + 1):0] counter;
 
-    always_ff@(posedge SCLK or negedge sresetn) begin
+    always_ff@(negedge SCLK or negedge sresetn) begin
         if(!sresetn) begin
             counter <= 0;
             spi_drv_rdy <= 1'b1;
@@ -43,8 +43,8 @@ module spi_drv #(
         end
     end
     
-    always_ff@(negedge SCLK) begin
-        if (!SS_N) begin
+    always_ff@(posedge SCLK) begin
+        if (~SS_N) begin
             MISO <= MOSI;
             rx_miso[counter - 1] <= MOSI;
         end

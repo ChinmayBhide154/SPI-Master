@@ -59,6 +59,7 @@ clk_div clk_div(
     .rst(sresetn),
     .n_pulses(n_clks),
     .start(start_cmd),
+    //.hardstart(start_cmd && start_cmd),
     .CLK_DIVIDE(CLK_DIVIDE), 
     .spi_clk(SCLK)
 );
